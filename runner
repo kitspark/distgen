@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  echo "usage: $0 <workflow|test> [name] [args...]"
+  exit 1
+}
+
+if [[ $# -lt 1 ]]; then
+  usage
+fi
+
+mode="$1"
+shift 1
+
+case "$mode" in
+  test)
+    if [[ $# -eq 0 ]]; then
+      # No specific test, run all
+      for test_dir in tests/*; do
+        if [[ -d "$test_dir" ]]; then
+          echo "Running test: $(basename "$test_dir")"
+          "$test_dir/run.sh"
+        fi
+      done
+    else
+      # Run a single test
+      target="$1"
+      shift 1
+      test_script="tests/$target/run.sh"
+      if [[ ! -x "$test_script" ]]; then
+        echo "Test '$target' not found: $test_script" >&2
+        exit 1
+      fi
+      "$test_script" "$@"
+    fi
+    ;;
+  *)
+    if [[ $# -lt 1 ]]; then
+      usage
+    fi
+    target="$1"
+    shift 1
+    workflow_script="workflow/$mode.sh"
+    if [[ ! -x "$workflow_script" ]]; then
+      echo "Workflow '$mode' not found: $workflow_script" >&2
+      exit 1
+    fi
+    "$workflow_script" "$target" "$@"
+    ;;
+esac
