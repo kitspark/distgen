@@ -21,8 +21,9 @@ RUN chmod +x /usr/local/bin/runner /usr/local/bin/workflow/*
 # Git safe directory config for GitHub Actions
 RUN git config --global --add safe.directory '*'
 
-# Set PATH to include workflow scripts
-ENV PATH="/usr/local/bin:${PATH}"
+# Set environment variables
+ENV PATH="/usr/local/bin:${PATH}" \
+    RUNNER_SCRIPTS_DIR="/usr/local/bin"
 
 # Optional: default workdir
 WORKDIR /workspace

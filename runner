@@ -13,8 +13,20 @@ fi
 mode="$1"
 shift 1
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Use the RUNNER_SCRIPTS_DIR env variable if set, otherwise derive from $0
+if [[ -n "${RUNNER_SCRIPTS_DIR:-}" ]]; then
+  SCRIPT_DIR="${RUNNER_SCRIPTS_DIR}"
+else
+  # Fallback: try to get from PATH or hardcoded location
+  SCRIPT_DIR="/usr/local/bin"
+  if [[ ! -d "${SCRIPT_DIR}/workflow" ]]; then
+    # If not in /usr/local/bin, try to find runner location
+    RUNNER_PATH=$(command -v runner 2>/dev/null || echo "")
+    if [[ -n "${RUNNER_PATH}" && "${RUNNER_PATH}" != "runner" ]]; then
+      SCRIPT_DIR="$(dirname "${RUNNER_PATH}")"
+    fi
+  fi
+fi
 
 case "$mode" in
   test)
@@ -44,9 +56,12 @@ case "$mode" in
     fi
     target="$1"
     shift 1
-    workflow_script="${SCRIPT_DIR}/workflow/$mode.sh"
+    workflow_script="${SCRIPT_DIR}/workflow/${mode}.sh"
     if [[ ! -x "$workflow_script" ]]; then
       echo "Workflow '$mode' not found: $workflow_script" >&2
+      echo "DEBUG: SCRIPT_DIR=${SCRIPT_DIR}" >&2
+      echo "DEBUG: Contents of ${SCRIPT_DIR}/workflow/:" >&2
+      ls -la "${SCRIPT_DIR}/workflow/" 2>/dev/null || echo "  Directory not found" >&2
       exit 1
     fi
     "$workflow_script" "$target" "$@"
