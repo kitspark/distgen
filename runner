@@ -13,11 +13,14 @@ fi
 mode="$1"
 shift 1
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 case "$mode" in
   test)
     if [[ $# -eq 0 ]]; then
       # No specific test, run all
-      for test_dir in tests/*; do
+      for test_dir in "${SCRIPT_DIR}/tests"/*; do
         if [[ -d "$test_dir" ]]; then
           echo "Running test: $(basename "$test_dir")"
           "$test_dir/run.sh"
@@ -27,7 +30,7 @@ case "$mode" in
       # Run a single test
       target="$1"
       shift 1
-      test_script="tests/$target/run.sh"
+      test_script="${SCRIPT_DIR}/tests/$target/run.sh"
       if [[ ! -x "$test_script" ]]; then
         echo "Test '$target' not found: $test_script" >&2
         exit 1
@@ -41,7 +44,7 @@ case "$mode" in
     fi
     target="$1"
     shift 1
-    workflow_script="workflow/$mode.sh"
+    workflow_script="${SCRIPT_DIR}/workflow/$mode.sh"
     if [[ ! -x "$workflow_script" ]]; then
       echo "Workflow '$mode' not found: $workflow_script" >&2
       exit 1
