@@ -12,14 +12,17 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy scripts
-COPY workflow/ /usr/local/bin/
-COPY runner /usr/local/bin/
+COPY workflow/ /usr/local/bin/workflow/
+COPY runner /usr/local/bin/runner
 
 # Make everything executable
-RUN chmod +x /usr/local/bin/runner /usr/local/bin/*
+RUN chmod +x /usr/local/bin/runner /usr/local/bin/workflow/*
 
 # Git safe directory config for GitHub Actions
 RUN git config --global --add safe.directory '*'
+
+# Set PATH to include workflow scripts
+ENV PATH="/usr/local/bin:${PATH}"
 
 # Optional: default workdir
 WORKDIR /workspace
